@@ -240,7 +240,7 @@ module Grape
                                   'long'
                                 when 'DateTime'
                                   'dateTime'
-                                when 'Numeric'
+                                when 'Numeric', 'Float'
                                   'double'
                                 else
                                   parse_entity_name(raw_data_type)
