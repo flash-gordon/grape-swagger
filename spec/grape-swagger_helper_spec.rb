@@ -1,22 +1,13 @@
 require 'spec_helper'
 
 describe 'helpers' do
-
   before :all do
     class HelperTestAPI < Grape::API
-      add_swagger_documentation
     end
   end
 
   subject do
-    api = Object.new
-
-    # after injecting grape-swagger into the Test API we get the helper methods
-    # back from the first endpoint's class (the API mounted by grape-swagger
-    # to serve the swagger_doc
-
-    api.extend HelperTestAPI.endpoints.first.options[:app].helpers
-    api
+    HelperTestAPI.add_swagger_documentation
   end
 
   context 'parsing parameters' do
@@ -53,12 +44,6 @@ describe 'helpers' do
           desc: 'rack file',
           datafile: 'content',
           required: true
-        },
-        rails: {
-          type: 'Hash',
-          desc: 'rails file',
-          datafile: 'content',
-          required: true
         }
       }
       path = '/coolness'
@@ -71,17 +56,27 @@ describe 'helpers' do
           type: 'File',
           required: true,
           allowMultiple: false
-        },
-        {
-          paramType: 'body',
-          name: :rails,
-          description: 'rails file',
-          type: 'File',
-          required: true,
-          allowMultiple: false
         }
       ]
+    end
 
+    it 'parses symbol param as string' do
+      params = {
+        animal: { type: 'Symbol', desc: 'An animal you like', required: true, values: [:cat, :dog] }
+      }
+      path = '/coolness'
+      method = 'POST'
+      expect(subject.parse_params(params, path, method)).to eq [
+        {
+          paramType: 'form',
+          name: :animal,
+          description: 'An animal you like',
+          type: 'string',
+          required: true,
+          allowMultiple: false,
+          enum: [:cat, :dog]
+        }
+      ]
     end
 
     context 'custom type' do
@@ -100,7 +95,6 @@ describe 'helpers' do
         ]
       end
     end
-
   end
 
   context 'parsing the path' do
@@ -142,5 +136,4 @@ describe 'helpers' do
       ]
     end
   end
-
 end

@@ -1,6 +1,39 @@
-### 0.8.1 (Next)
+### 0.10.1 (Next)
 
 * Your contribution here.
+
+### 0.10.0 (March 10, 2015)
+
+#### Features
+
+* [#217](https://github.com/tim-vandecasteele/grape-swagger/pull/217): Support Array of entities for proper rendering of grape-entity input dependencies - [@swistaczek](https://github.com/swistaczek).
+* [#214](https://github.com/tim-vandecasteele/grape-swagger/pull/214): Allow anything that responds to `call` to be used in `:hidden` - [@zbelzer](https://github.com/zbelzer).
+* [#196](https://github.com/tim-vandecasteele/grape-swagger/pull/196): If `:type` is omitted, see if it's available in `:using` - [@jhollinger](https://github.com/jhollinger).
+* [#200](https://github.com/tim-vandecasteele/grape-swagger/pull/200): Treat `type: Symbol` as string form parameter - [@ypresto](https://github.com/ypresto).
+* [#207](https://github.com/tim-vandecasteele/grape-swagger/pull/207): Support grape `mutually_exclusive` - [@mintuhouse](https://github.com/mintuhouse).
+* [#220](https://github.com/tim-vandecasteele/grape-swagger/pull/220): Support standalone appearance of namespace routes with a custom name instead of forced nesting - [@croeck](https://github.com/croeck).
+
+#### Fixes
+
+* [#221](https://github.com/tim-vandecasteele/grape-swagger/pull/221): Fixed group parameters' name with type Array - [@u2](https://github.com/u2).
+* [#211](https://github.com/tim-vandecasteele/grape-swagger/pull/211): Fixed the dependency, just `require 'grape'` - [@u2](https://github.com/u2).
+* [#210](https://github.com/tim-vandecasteele/grape-swagger/pull/210): Fixed the range `:values` option, now exposed as `enum` parameters - [@u2](https://github.com/u2).
+* [#208](https://github.com/tim-vandecasteele/grape-swagger/pull/208): Fixed `Float` parameters, exposed as Swagger `float` types - [@u2](https://github.com/u2).
+* [#216](https://github.com/tim-vandecasteele/grape-swagger/pull/216), [#192](https://github.com/tim-vandecasteele/grape-swagger/issues/192), [#189](https://github.com/tim-vandecasteele/grape-swagger/issues/189): Fixed API route paths matching for root endpoints with `grape ~> 0.10.0`, specific `format` and `:path` versioning - [@dm1try](https://github.com/dm1try), [@minch](https://github.com/minch).
+
+### 0.9.0 (December 19, 2014)
+
+* [#91](https://github.com/tim-vandecasteele/grape-swagger/issues/91): Fixed empty field for group parameters' name with type hash or Array - [@dukedave](https://github.com/dukedave).
+* [#154](https://github.com/tim-vandecasteele/grape-swagger/pull/154): Allow classes for type declarations inside documentation - [@mrmargolis](https://github.com/mrmargolis).
+* [#162](https://github.com/tim-vandecasteele/grape-swagger/pull/162): Fix performance issue related to having a large number of models - [@elado](https://github.com/elado).
+* [#169](https://github.com/tim-vandecasteele/grape-swagger/pull/169): Test against multiple versions of Grape - [@dblock](https://github.com/dblock).
+* [#166](https://github.com/tim-vandecasteele/grape-swagger/pull/166): Ensure compatibility with Grape 0.8.0 or newer - [@dblock](https://github.com/dblock).
+* [#174](https://github.com/tim-vandecasteele/grape-swagger/pull/172): Fix problem with using prefix name somewhere in api paths - [@grzesiek](https://github.com/grzesiek).
+* [#176](https://github.com/tim-vandecasteele/grape-swagger/pull/176): Added ability to load nested models recursively - [@sergey-verevkin](https://github.com/sergey-verevkin).
+* [#179](https://github.com/tim-vandecasteele/grape-swagger/pull/179): Document `Virtus::Attribute::Boolean` as boolean - [@eashman](https://github.com/eashman), [@dblock](https://github.com/dblock).
+* [#178](https://github.com/tim-vandecasteele/grape-swagger/issues/178): Fixed `Hash` parameters, now exposed as Swagger `object` types - [@dblock](https://github.com/dblock).
+* [#167](https://github.com/tim-vandecasteele/grape-swagger/pull/167): Support mutli-tenanted APIs, don't cache `base_path` - [@bradrobertson](https://github.com/bradrobertson), (https://github.com/dblock).
+* [#185](https://github.com/tim-vandecasteele/grape-swagger/pull/185): Support strings in `Grape::Entity.expose`'s `:using` option - [@jhollinger](https://github.com/jhollinger).
 
 ### 0.8.0 (August 30, 2014)
 

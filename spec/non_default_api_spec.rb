@@ -3,7 +3,6 @@ require 'spec_helper'
 describe 'options: ' do
   context 'overriding the basepath' do
     before :all do
-
       class BasePathMountedApi < Grape::API
         desc 'This gets something.'
         get '/something' do
@@ -17,7 +16,6 @@ describe 'options: ' do
         mount BasePathMountedApi
         add_swagger_documentation base_path: NON_DEFAULT_BASE_PATH
       end
-
     end
 
     def app
@@ -50,7 +48,7 @@ describe 'options: ' do
 
       class SimpleApiWithProcBasePath < Grape::API
         mount ProcBasePathMountedApi
-        add_swagger_documentation base_path: proc { |request| "#{request.base_url}/some_value" }
+        add_swagger_documentation base_path: proc { |request| [request.base_url, request.params[:base_path], 'some_value'].compact.join('/') }
       end
     end
 
@@ -58,18 +56,26 @@ describe 'options: ' do
       SimpleApiWithProcBasePath
     end
 
-    subject do
-      get '/swagger_doc/something.json'
-      JSON.parse(last_response.body)
+    context 'default' do
+      subject do
+        get '/swagger_doc/something.json'
+        JSON.parse(last_response.body)
+      end
+
+      it 'retrieves the same given base-path for mounted-api' do
+        expect(subject['basePath']).to eq 'http://example.org/some_value'
+      end
     end
 
-    # it "retrieves the given base-path on /swagger_doc" do
-    #   get '/swagger_doc.json'
-    #   JSON.parse(last_response.body)["basePath"].should == "http://example.org/some_value"
-    # end
+    context 'param' do
+      subject do
+        get '/swagger_doc/something.json?base_path=foobar'
+        JSON.parse(last_response.body)
+      end
 
-    it 'retrieves the same given base-path for mounted-api' do
-      expect(subject['basePath']).to eq 'http://example.org/some_value'
+      it 're-evaluates base-path' do
+        expect(subject['basePath']).to eq 'http://example.org/foobar/some_value'
+      end
     end
   end
 
@@ -96,11 +102,6 @@ describe 'options: ' do
       get '/swagger_doc/something.json'
       JSON.parse(last_response.body)
     end
-
-    # it "retrieves the given base-path on /swagger_doc" do
-    #   get '/swagger_doc.json'
-    #   JSON.parse(last_response.body)["basePath"].should == "http://example.org/some_value"
-    # end
 
     it 'retrieves the same given base-path for mounted-api' do
       get '/swagger_doc/something.json'
@@ -168,7 +169,7 @@ describe 'options: ' do
         'apiVersion' => '0.1',
         'swaggerVersion' => '1.2',
         'info' => {},
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [
           { 'path' => '/something.{format}', 'description' => 'Operations about somethings' },
           { 'path' => '/swagger_doc.{format}', 'description' => 'Operations about swagger_docs' }
@@ -184,7 +185,7 @@ describe 'options: ' do
         'swaggerVersion' => '1.2',
         'basePath' => 'http://example.org',
         'resourcePath' => '/something',
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [{
           'path' => '/0.1/something.{format}',
           'operations' => [{
@@ -229,7 +230,7 @@ describe 'options: ' do
         'apiVersion' => '0.1',
         'swaggerVersion' => '1.2',
         'info' => {},
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [
           { 'path' => '/something.{format}', 'description' => 'Operations about somethings' }
         ]
@@ -251,7 +252,6 @@ describe 'options: ' do
         mount HideDocumentationPathPrefixedMountedApi
         add_swagger_documentation hide_documentation_path: true
       end
-
     end
 
     def app
@@ -269,7 +269,7 @@ describe 'options: ' do
         'swaggerVersion' => '1.2',
         'basePath' => 'http://example.org',
         'resourcePath' => '/something',
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [{
           'path' => '/abc/something.{format}',
           'operations' => [{
@@ -283,7 +283,6 @@ describe 'options: ' do
         }]
       )
     end
-
   end
 
   context 'overriding hiding the documentation paths in prefixed and versioned API' do
@@ -320,7 +319,7 @@ describe 'options: ' do
         'swaggerVersion' => '1.2',
         'basePath' => 'http://example.org',
         'resourcePath' => '/something',
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [{
           'path' => '/abc/v20/something.{format}',
           'operations' => [{
@@ -335,7 +334,6 @@ describe 'options: ' do
         }]
       )
     end
-
   end
 
   context 'overriding the mount-path' do
@@ -561,7 +559,7 @@ describe 'options: ' do
         'apiVersion' => '0.1',
         'swaggerVersion' => '1.2',
         'info' => {},
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [
           { 'path' => '/first.{format}', 'description' => 'Operations about firsts' }
         ]
@@ -574,7 +572,7 @@ describe 'options: ' do
         'apiVersion' => '0.1',
         'swaggerVersion' => '1.2',
         'info' => {},
-        'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+        'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
         'apis' => [
           { 'path' => '/second.{format}', 'description' => 'Operations about seconds' }
         ]

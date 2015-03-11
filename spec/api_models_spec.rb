@@ -1,11 +1,11 @@
 require 'spec_helper'
 
 describe 'API Models' do
-
   before :all do
     module Entities
       class Something < Grape::Entity
         expose :text, documentation: { type: 'string', desc: 'Content of something.' }
+        expose :links, documentation: { type: 'link', is_array: true }
       end
     end
 
@@ -51,6 +51,47 @@ describe 'API Models' do
         expose :something, as: :post, using: Entities::Something, documentation: { type: 'Something', desc: 'Reference to something.' }
       end
     end
+
+    module Entities
+      class FourthLevel < Grape::Entity
+        expose :text, documentation: { type: 'string' }
+      end
+
+      class ThirdLevel < Grape::Entity
+        expose :parts, using: Entities::FourthLevel, documentation: { type: 'FourthLevel' }
+      end
+
+      class SecondLevel < Grape::Entity
+        expose :parts, using: Entities::ThirdLevel, documentation: { type: 'ThirdLevel' }
+      end
+
+      class FirstLevel < Grape::Entity
+        expose :parts, using: Entities::SecondLevel, documentation: { type: 'SecondLevel' }
+      end
+    end
+  end
+
+  module Entities
+    class QueryInputElement < Grape::Entity
+      expose :key, documentation: {
+        type: String, desc: 'Name of parameter', required: true }
+      expose :value, documentation: {
+        type: String, desc: 'Value of parameter', required: true }
+    end
+
+    class QueryInput < Grape::Entity
+      expose :elements, using: Entities::QueryInputElement, documentation: {
+        type: 'QueryInputElement',
+        desc: 'Set of configuration',
+        param_type: 'body',
+        is_array: true,
+        required: true
+      }
+    end
+
+    class QueryResult < Grape::Entity
+      expose :elements_size, documentation: { type: Integer, desc: 'Return input elements size' }
+    end
   end
 
   def app
@@ -79,7 +120,6 @@ describe 'API Models' do
 
       desc 'This tests the enum values in params and documentation.', entity: Entities::EnumValues, params: Entities::EnumValues.documentation
       get '/enum_description_in_entity' do
-
         enum_value = OpenStruct.new gender: 'Male', number: 1
 
         present enum_value, with: Entities::EnumValues
@@ -89,6 +129,24 @@ describe 'API Models' do
       get '/aliasedthing' do
         something = OpenStruct.new(something: OpenStruct.new(text: 'something'))
         present something, with: Entities::AliasedThing
+      end
+
+      desc 'This gets all nested entities.', entity: Entities::FirstLevel
+      get '/nesting' do
+        fourth_level = OpenStruct.new text: 'something'
+        third_level  = OpenStruct.new parts: [fourth_level]
+        second_level = OpenStruct.new parts: [third_level]
+        first_level  = OpenStruct.new parts: [second_level]
+
+        present first_level, with: Entities::FirstLevel
+      end
+
+      desc 'This tests diffrent entity for input and diffrent for output',
+           entity: [Entities::QueryResult, Entities::QueryInput],
+           params: Entities::QueryInput.documentation
+      get '/multiple_entities' do
+        result = OpenStruct.new(elements_size: params[:elements].size)
+        present result, with: Entities::QueryResult
       end
 
       add_swagger_documentation
@@ -117,37 +175,29 @@ describe 'API Models' do
         { 'path' => '/somethingelse.{format}', 'description' => 'Operations about somethingelses' },
         { 'path' => '/enum_description_in_entity.{format}', 'description' => 'Operations about enum_description_in_entities' },
         { 'path' => '/aliasedthing.{format}', 'description' => 'Operations about aliasedthings' },
+        { 'path' => '/nesting.{format}', 'description' => 'Operations about nestings' },
+        { 'path' => '/multiple_entities.{format}', 'description' => 'Operations about multiple_entities' },
         { 'path' => '/swagger_doc.{format}', 'description' => 'Operations about swagger_docs' }
       ]
     end
   end
 
   it 'returns type' do
-    get '/swagger_doc/something.json'
+    get '/swagger_doc/something'
     result = JSON.parse(last_response.body)
     expect(result['apis'].first['operations'].first['type']).to eq 'Something'
   end
 
   it 'includes nested type' do
-    get '/swagger_doc/thing.json'
+    get '/swagger_doc/thing'
     result = JSON.parse(last_response.body)
     expect(result['apis'].first['operations'].first['type']).to eq 'Some::Thing'
   end
 
   it 'includes entities which are only used as composition' do
-    get '/swagger_doc/somethingelse.json'
+    get '/swagger_doc/somethingelse'
     result = JSON.parse(last_response.body)
-    expect(result['apis']).to eq([{
-                                   'path' => '/somethingelse.{format}',
-                                   'operations' => [{
-                                     'notes' => '',
-                                     'type' => 'SomeThingElse',
-                                     'summary' => 'This gets somthing else.',
-                                     'nickname' => 'GET-somethingelse---format-',
-                                     'method' => 'GET',
-                                     'parameters' => []
-                                   }]
-                                 }])
+    expect(result['apis'][0]['path']).to start_with '/somethingelse'
 
     expect(result['models']['SomeThingElse']).to include('id' => 'SomeThingElse',
                                                          'properties' => {
@@ -188,7 +238,7 @@ describe 'API Models' do
   end
 
   it 'includes enum values in params and documentation.' do
-    get '/swagger_doc/enum_description_in_entity.json'
+    get '/swagger_doc/enum_description_in_entity'
     result = JSON.parse(last_response.body)
     expect(result['models']['EnumValues']).to eq(
                                                   'id' => 'EnumValues',
@@ -206,11 +256,10 @@ describe 'API Models' do
                                                          ],
                                                       'type' => 'EnumValues'
                                                   )
-
   end
 
   it 'includes referenced models in those with aliased references.' do
-    get '/swagger_doc/aliasedthing.json'
+    get '/swagger_doc/aliasedthing'
     result = JSON.parse(last_response.body)
     expect(result['models']['AliasedThing']).to eq(
                                                     'id' => 'AliasedThing',
@@ -222,8 +271,23 @@ describe 'API Models' do
     expect(result['models']['Something']).to eq(
                                                  'id' => 'Something',
                                                  'properties' => {
-                                                   'text' => { 'type' => 'string', 'description' => 'Content of something.' }
+                                                   'text' => { 'type' => 'string', 'description' => 'Content of something.' },
+                                                   'links' => { 'type' => 'array', 'items' => { '$ref' => 'link' } }
                                                  }
                                              )
+  end
+
+  it 'includes all entities with four levels of nesting' do
+    get '/swagger_doc/nesting'
+    result = JSON.parse(last_response.body)
+
+    expect(result['models']).to include('FirstLevel', 'SecondLevel', 'ThirdLevel', 'FourthLevel')
+  end
+
+  it 'includes all entities while using multiple entities' do
+    get '/swagger_doc/multiple_entities'
+    result = JSON.parse(last_response.body)
+
+    expect(result['models']).to include('QueryInput', 'QueryInputElement', 'QueryResult')
   end
 end

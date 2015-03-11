@@ -1,16 +1,17 @@
 require 'spec_helper'
 
 describe 'Global Models' do
-
   before :all do
     module Entities
       module Some
         class Thing < Grape::Entity
           expose :text, documentation: { type: 'string', desc: 'Content of something.' }
+          expose :name, documentation: { type: String, desc: 'Name of something.' }
         end
 
         class CombinedThing < Grape::Entity
           expose :text, documentation: { type: 'string', desc: 'Content of something.' }
+          expose :created_at, documentation: { type: DateTime, desc: 'Creation of something.' }
         end
       end
     end
@@ -18,15 +19,13 @@ describe 'Global Models' do
 
   subject do
     Class.new(Grape::API) do
-      desc 'This gets thing.', params: Entities::Some::Thing.documentation
+      desc 'This gets thing.'
       get '/thing' do
         thing = OpenStruct.new text: 'thing'
         present thing, with: Entities::Some::Thing
       end
 
-      desc 'This gets combined thing.',
-           params: Entities::Some::CombinedThing.documentation,
-           entity: Entities::Some::CombinedThing
+      desc 'This gets combined thing.', entity: Entities::Some::CombinedThing
       get '/combined_thing' do
         thing = OpenStruct.new text: 'thing'
         present thing, with: Entities::Some::CombinedThing
@@ -47,7 +46,8 @@ describe 'Global Models' do
         'Some::Thing' => {
           'id' => 'Some::Thing',
           'properties' => {
-            'text' => { 'type' => 'string', 'description' => 'Content of something.' }
+            'text' => { 'type' => 'string', 'description' => 'Content of something.' },
+            'name' => { 'type' => 'string', 'description' => 'Name of something.' }
           }
         })
   end
@@ -60,7 +60,8 @@ describe 'Global Models' do
                                   'Some::Thing' => {
                                     'id' => 'Some::Thing',
                                     'properties' => {
-                                      'text' => { 'type' => 'string', 'description' => 'Content of something.' }
+                                      'text' => { 'type' => 'string', 'description' => 'Content of something.' },
+                                      'name' => { 'type' => 'string', 'description' => 'Name of something.' }
                                     }
                                   })
 
@@ -68,9 +69,9 @@ describe 'Global Models' do
                                   'Some::CombinedThing' => {
                                     'id' => 'Some::CombinedThing',
                                     'properties' => {
-                                      'text' => { 'type' => 'string', 'description' => 'Content of something.' }
+                                      'text' => { 'type' => 'string', 'description' => 'Content of something.' },
+                                      'created_at' => { 'type' => 'dateTime', 'description' => 'Creation of something.' }
                                     }
                                   })
-
   end
 end

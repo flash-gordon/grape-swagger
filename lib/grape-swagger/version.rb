@@ -1,3 +1,3 @@
 module GrapeSwagger
-  VERSION = '0.8.1'
+  VERSION = '0.10.1'
 end

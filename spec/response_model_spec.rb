@@ -4,17 +4,28 @@ describe 'responseModel' do
   before :all do
     module MyAPI
       module Entities
-        class BaseEntity < Grape::Entity
-          def self.entity_name
-            name.sub(/^MyAPI::Entities::/, '')
-          end
+        class Kind < Grape::Entity
+          expose :title, documentation: { type: 'string', desc: 'Title of the kind.' }
         end
 
-        class Something < BaseEntity
+        class Something < Grape::Entity
           expose :text, documentation: { type: 'string', desc: 'Content of something.' }
+          expose :kind, using: Kind, documentation: { type: 'MyAPI::Kind', desc: 'The kind of this something.' }
+          expose :kind2, using: Kind, documentation: { desc: 'Secondary kind.' }
+          expose :kind3, using: 'MyAPI::Entities::Kind', documentation: { desc: 'Tertiary kind.' }
+          expose :tags, using: 'MyAPI::Entities::Tag', documentation: { desc: 'Tags.', is_array: true }
+          expose :relation, using: 'MyAPI::Entities::Relation', documentation: { type: 'MyAPI::Relation', desc: 'A related model.' }
         end
 
-        class Error < BaseEntity
+        class Relation < Grape::Entity
+          expose :name, documentation: { type: 'string', desc: 'Name' }
+        end
+
+        class Tag < Grape::Entity
+          expose :name, documentation: { type: 'string', desc: 'Name' }
+        end
+
+        class Error < Grape::Entity
           expose :code, documentation: { type: 'string', desc: 'Error code' }
           expose :message, documentation: { type: 'string', desc: 'Error message' }
         end
@@ -59,21 +70,51 @@ describe 'responseModel' do
         {
           'code' => 200,
           'message' => 'OK',
-          'responseModel' => 'Something'
+          'responseModel' => 'MyAPI::Something'
         },
         {
           'code' => 403,
           'message' => 'Refused to return something',
-          'responseModel' => 'Error'
+          'responseModel' => 'MyAPI::Error'
         }
       ]
     )
-    expect(subject['models'].keys).to include 'Error'
-    expect(subject['models']['Error']).to eq(
-      'id' => 'Error',
+
+    expect(subject['models'].keys).to include 'MyAPI::Error'
+    expect(subject['models']['MyAPI::Error']).to eq(
+      'id' => 'MyAPI::Error',
       'properties' => {
         'code' => { 'type' => 'string', 'description' => 'Error code' },
         'message' => { 'type' => 'string', 'description' => 'Error message' }
+      }
+    )
+
+    expect(subject['models'].keys).to include 'MyAPI::Something'
+    expect(subject['models']['MyAPI::Something']).to eq(
+      'id' => 'MyAPI::Something',
+      'properties' => {
+        'text' => { 'type' => 'string', 'description' => 'Content of something.' },
+        'kind' => { '$ref' => 'MyAPI::Kind', 'description' => 'The kind of this something.' },
+        'kind2' => { '$ref' => 'MyAPI::Kind', 'description' => 'Secondary kind.' },
+        'kind3' => { '$ref' => 'MyAPI::Kind', 'description' => 'Tertiary kind.' },
+        'tags' => { 'items' => { '$ref' => 'MyAPI::Tag' }, 'type' => 'array', 'description' => 'Tags.' },
+        'relation' => { '$ref' => 'MyAPI::Relation', 'description' => 'A related model.' }
+      }
+    )
+
+    expect(subject['models'].keys).to include 'MyAPI::Kind'
+    expect(subject['models']['MyAPI::Kind']).to eq(
+      'id' => 'MyAPI::Kind',
+      'properties' => {
+        'title' => { 'type' => 'string', 'description' => 'Title of the kind.' }
+      }
+    )
+
+    expect(subject['models'].keys).to include 'MyAPI::Relation'
+    expect(subject['models']['MyAPI::Relation']).to eq(
+      'id' => 'MyAPI::Relation',
+      'properties' => {
+        'name' => { 'type' => 'string', 'description' => 'Name' }
       }
     )
   end

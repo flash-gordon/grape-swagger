@@ -14,6 +14,13 @@ describe 'a hide mounted api' do
       get '/hide' do
         { foo: 'bar' }
       end
+
+      desc 'Lazily show endpoint',
+           hidden: -> { false }
+
+      get '/lazy' do
+        { foo: 'bar' }
+      end
     end
 
     class HideApi < Grape::API
@@ -36,9 +43,10 @@ describe 'a hide mounted api' do
       'apiVersion' => '0.1',
       'swaggerVersion' => '1.2',
       'info' => {},
-      'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+      'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
       'apis' => [
         { 'path' => '/simple.{format}', 'description' => 'Operations about simples' },
+        { 'path' => '/lazy.{format}', 'description' => 'Operations about lazies' },
         { 'path' => '/swagger_doc.{format}', 'description' => 'Operations about swagger_docs' }
       ]
     )
@@ -59,6 +67,13 @@ describe 'a hide mounted api with same namespace' do
       get '/simple/hide' do
         { foo: 'bar' }
       end
+
+      desc 'Lazily hide endpoint',
+           hidden: -> { true }
+
+      get '/simple/lazy' do
+        { foo: 'bar' }
+      end
     end
 
     class HideNamespaceApi < Grape::API
@@ -77,7 +92,7 @@ describe 'a hide mounted api with same namespace' do
       'apiVersion' => '0.1',
       'swaggerVersion' => '1.2',
       'info' => {},
-      'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+      'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
       'apis' => [
         { 'path' => '/simple.{format}', 'description' => 'Operations about simples' },
         { 'path' => '/swagger_doc.{format}', 'description' => 'Operations about swagger_docs' }
@@ -92,7 +107,7 @@ describe 'a hide mounted api with same namespace' do
       'swaggerVersion' => '1.2',
       'basePath' => 'http://example.org',
       'resourcePath' => '/simple',
-      'produces' => ['application/xml', 'application/json', 'application/vnd.api+json', 'text/plain'],
+      'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
       'apis' => [{
         'path' => '/simple/show.{format}',
         'operations' => [{
