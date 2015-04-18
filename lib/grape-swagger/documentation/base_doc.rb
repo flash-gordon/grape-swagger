@@ -47,6 +47,10 @@ module GrapeSwagger
       def stripped_model_name(entity)
         entity.to_s.gsub(/Entit(?:y|ies)/, '').gsub('::::', '::').gsub(/^::/, '')
       end
+
+      def translate_data_type(data_type)
+        I18n.t(['grape_swagger.data_types', data_type].join('.'), default: data_type)
+      end
     end
   end
 end

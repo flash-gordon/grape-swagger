@@ -1,7 +1,7 @@
 module GrapeSwagger
   class Documentation < Grape::API
     class RouteDoc < BaseDoc
-      attr_reader :endpoint, :route
+      attr_reader :endpoint, :route, :route_options
 
       PARAM_DEFAULTS = {
           description: nil,
@@ -16,7 +16,7 @@ module GrapeSwagger
         super(documentation_class)
 
         @endpoint = endpoint
-        @route = route
+        @route_options = route.instance_variable_get(:@options)
       end
 
       def parameters
@@ -24,34 +24,38 @@ module GrapeSwagger
       end
 
       def method
-        route.route_method
+        route_options[:method]
       end
 
       def path
-        route.route_path
+        route_options[:path]
       end
 
       def params
-        route.route_params || []
+        route_options[:params] || []
       end
 
       def header_params
-        (route.route_headers || []).map do |param, value|
-          data_type     = 'String'
-          description   = get_description(value.is_a?(Hash) ? value : {}, param)
-          required      = value.is_a?(Hash) ? !!value[:required] : false
-          default_value = value.is_a?(Hash) ? value[:default] : nil
-          param_type    = 'header'
+        (route_options[:headers]|| []).map do |param, value|
+          if value.is_a?(Hash)
+            value_hash = value
+          else
+            value_hash = {
+                description: nil,
+                required: false,
+                default: nil
+            }
+          end
 
           parsed_params = {
-              paramType:    param_type,
-              name:         param,
-              description:  description,
-              type:         data_type,
-              required:     required
+              paramType: 'header',
+              name: param,
+              description: get_description(value_hash, param),
+              type: translate_data_type('string'),
+              required: !!value_hash[:required]
           }
 
-          parsed_params[:defaultValue] = default_value if default_value
+          parsed_params[:defaultValue] = value_hash[:default] if value_hash[:default]
 
           parsed_params
         end
@@ -104,7 +108,7 @@ module GrapeSwagger
       end
 
       def get_description(values, name)
-        s = values[:desc] || values[:description] || translate(values.fetch(:i18n_key, name))
+        s = values[:desc] || values[:description] || translate(values.fetch(:documentation, {}).fetch(:i18n_key, name))
 
         as_markdown(s.is_a?(Proc) ? s.call : s)
       end
@@ -128,13 +132,13 @@ module GrapeSwagger
               paramType:     values_hash.fetch(:param_type) { select_param_type(data_type, param) },
               name:          values_hash[:full_name] || param,
               description:   description,
-              type:          is_array ? 'array' : data_type,
+              type:          is_array ? 'array' : translate_data_type(data_type),
               required:      !!values_hash[:required],
               allowMultiple: is_array
           }
           parsed_params[:format] = 'int32' if data_type == 'integer'
           parsed_params[:format] = 'int64' if data_type == 'long'
-          parsed_params[:items] = {'$ref' => data_type} if is_array
+          parsed_params[:items] = {'$ref' => translate_data_type(data_type)} if is_array
           parsed_params[:defaultValue] = values_hash[:default] if values_hash[:default]
           parsed_params[:enum] = enum_values if enum_values
           parsed_params
@@ -181,7 +185,23 @@ module GrapeSwagger
       end
 
       def translate(key)
-        I18n.t([app.name.underscore.gsub('/', '.'), key].join('.'), default: '') if app
+        I18n.t([app.name.underscore.gsub('/', '.'), key].join('.'), default: '').presence if app
+      end
+
+      def translated_description
+        case route_options[:description]
+          when Proc   then route_options[:description].call
+          when String then route_options[:description]
+          else translate('routes.' + description_nickname_key) || description_nickname_key
+        end
+      end
+
+      def nickname
+        route_options[:nickname] || method + path.gsub(/[\/:\(\)\.]/, '-')
+      end
+
+      def description_nickname_key
+        nickname.gsub(/\s+/, '-').gsub('--version', '').gsub(/format-$/, '').gsub(/-+/, '-').chomp('-').downcase
       end
     end
 
@@ -248,9 +268,9 @@ module GrapeSwagger
 
             operation = {
                 notes: notes.to_s,
-                summary: route.route_description || '',
-                nickname: route.route_nickname || (route.route_method + route.route_path.gsub(/[\/:\(\)\.]/, '-')),
-                method: route.route_method,
+                summary: route_doc.translated_description || '',
+                nickname: route_doc.nickname,
+                method: route_doc.method,
                 parameters: route_doc.parameters,
                 type: 'void'
             }
