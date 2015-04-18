@@ -12,6 +12,7 @@ describe 'helpers' do
 
   context 'parsing parameters' do
     it 'parses params as query strings for a GET' do
+      pending
       params = {
         name: { type: 'String', desc: 'A name', required: true, default: 'default' },
         level: 'max'
@@ -25,6 +26,7 @@ describe 'helpers' do
     end
 
     it 'parses params as form for a POST' do
+      pending
       params = {
         name: { type: 'String', desc: 'A name', required: true },
         level: 'max'
@@ -38,6 +40,7 @@ describe 'helpers' do
     end
 
     it 'parses file param' do
+      pending
       params = {
         rack: {
           type: 'Rack::Multipart::UploadedFile',
@@ -61,6 +64,7 @@ describe 'helpers' do
     end
 
     it 'parses symbol param as string' do
+      pending
       params = {
         animal: { type: 'Symbol', desc: 'An animal you like', required: true, values: [:cat, :dog] }
       }
@@ -85,6 +89,7 @@ describe 'helpers' do
         end
       end
       it 'parses a custom parameters' do
+        pending
         params = {
           option: { type: CustomType, desc: 'Custom option' }
         }
@@ -99,21 +104,25 @@ describe 'helpers' do
 
   context 'parsing the path' do
     it 'parses the path' do
+      pending
       path = ':abc/def(.:format)'
       expect(subject.parse_path(path, nil)).to eq '{abc}/def.{format}'
     end
 
     it 'parses a path that has vars with underscores in the name' do
+      pending
       path = 'abc/:def_g(.:format)'
       expect(subject.parse_path(path, nil)).to eq 'abc/{def_g}.{format}'
     end
 
     it 'parses a path that has vars with numbers in the name' do
+      pending
       path = 'abc/:sha1(.:format)'
       expect(subject.parse_path(path, nil)).to eq 'abc/{sha1}.{format}'
     end
 
     it 'parses a path that has multiple variables' do
+      pending
       path1 = 'abc/:def/:geh(.:format)'
       path2 = 'abc/:def:geh(.:format)'
       expect(subject.parse_path(path1, nil)).to eq 'abc/{def}/{geh}.{format}'
@@ -121,6 +130,7 @@ describe 'helpers' do
     end
 
     it 'parses the path with a specified version' do
+      pending
       path = ':abc/{version}/def(.:format)'
       expect(subject.parse_path(path, 'v1')).to eq '{abc}/v1/def.{format}'
     end
@@ -128,6 +138,7 @@ describe 'helpers' do
 
   context 'parsing header parameters' do
     it 'parses params for the header' do
+      pending
       params = {
         'XAuthToken' => { description: 'A required header.', required: true, default: 'default' }
       }

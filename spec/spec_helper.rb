@@ -10,6 +10,7 @@ require 'rubygems'
 require 'bundler'
 
 require 'json'
+require 'pry'
 
 Bundler.setup :default, :test
 

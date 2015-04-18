@@ -211,30 +211,23 @@ describe 'API Models' do
                                                            },
                                                            'part' => { '$ref' => 'composes' }
                                                          },
-                                                         'required' => ['parts']
+                                                         'required' => ['parts'])
 
-                                                 )
-
-    expect(result['models']['ComposedOf']).to include(
-                                                        'id' => 'ComposedOf',
-                                                        'properties' => {
-                                                          'part_text' => {
-                                                            'type' => 'string',
-                                                            'description' => 'Content of composedof.'
-                                                          }
-                                                        }
-                                                      )
-
-    expect(result['models']['composed']).to include(
-                                                      'id' => 'composed',
+    expect(result['models']['ComposedOf']).to include('id' => 'ComposedOf',
                                                       'properties' => {
                                                         'part_text' => {
                                                           'type' => 'string',
-                                                          'description' => 'Content of composedof else.'
-                                                        }
+                                                          'description' => 'Content of composedof.'
+                                                          }
+                                                        })
 
+    expect(result['models']['composed']).to include('id' => 'composed',
+                                                    'properties' => {
+                                                      'part_text' => {
+                                                        'type' => 'string',
+                                                        'description' => 'Content of composedof else.'
                                                       }
-                                                    )
+                                                    })
   end
 
   it 'includes enum values in params and documentation.' do
