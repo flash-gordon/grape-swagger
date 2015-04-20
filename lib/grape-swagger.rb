@@ -51,8 +51,8 @@ module Grape
       end
 
       def combined_namespaces
-        @combined_namespaces ||= all_apps.reduce({}) do |combined_namespaces, app|
-          app.endpoints.reduce(combined_namespaces) do |namespaces, endpoint|
+        @combined_namespaces ||= all_apps.each_with_object({}) do |app, combined_namespaces|
+          app.endpoints.each_with_object(combined_namespaces) do |endpoint, namespaces|
             ns = if endpoint.respond_to?(:namespace_stackable)
                    endpoint.namespace_stackable(:namespace).last
                  else
@@ -61,7 +61,6 @@ module Grape
             # use the full namespace here (not the latest level only)
             # and strip leading slash
             namespaces[endpoint.namespace.sub(/^\//, '')] = ns if ns
-            namespaces
           end
         end
       end

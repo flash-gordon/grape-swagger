@@ -203,6 +203,19 @@ module GrapeSwagger
       def description_nickname_key
         nickname.gsub(/\s+/, '-').gsub('--version', '').gsub(/format-$/, '').gsub(/-+/, '-').chomp('-').downcase
       end
+
+      def notes
+        if route_options.key?(:notes)
+          s = case route_options[:notes]
+                when Proc   then route_options[:notes].call
+                when String then route_options[:notes]
+                else route_options[:notes].to_s
+              end
+          as_markdown(s)
+        else
+          ''
+        end
+      end
     end
 
     class EndpointDoc < BaseDoc
@@ -258,8 +271,6 @@ module GrapeSwagger
 
         apis = grouped_operations.map do |(path, op_routes)|
           operations = op_routes.map do |(route, endpoint)|
-            notes = as_markdown(route.route_notes)
-
             http_codes, extra_models = parse_http_codes(route.route_http_codes)
 
             models |= extra_models | Array(route.route_entity || [])
@@ -267,7 +278,7 @@ module GrapeSwagger
             route_doc = RouteDoc.new(documentation_class, endpoint, route)
 
             operation = {
-                notes: notes.to_s,
+                notes: route_doc.notes,
                 summary: route_doc.translated_description || '',
                 nickname: route_doc.nickname,
                 method: route_doc.method,

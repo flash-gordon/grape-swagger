@@ -5,9 +5,8 @@ module GrapeSwagger
 
       def description
         namespaces = endpoint.combined_namespaces
-        namespace_routes = endpoint.combined_namespace_routes.reduce({}) do |res, (key, routes_with_endpoints)|
-          res[key] = routes_with_endpoints.map(&:first)
-          res
+        namespace_routes = endpoint.combined_namespace_routes.each_with_object({}) do |(key, routes_with_endpoints), res|
+          res[key] = routes_with_endpoints
         end
 
         if hide_documentation_path?
@@ -15,7 +14,7 @@ module GrapeSwagger
         end
 
         namespace_routes_array = namespace_routes.keys.map do |local_route|
-          next if namespace_routes[local_route].map(&:route_hidden).all? { |value| value.respond_to?(:call) ? value.call : value }
+          next if namespace_routes[local_route].map(&:first).map(&:route_hidden).all? { |value| value.respond_to?(:call) ? value.call : value }
 
           url_format  = '.{format}' unless hide_format?
 
