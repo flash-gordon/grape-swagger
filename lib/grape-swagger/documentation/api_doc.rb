@@ -1,7 +1,7 @@
 module GrapeSwagger
   class Documentation < Grape::API
     class APIDoc < BaseDoc
-      delegate :extra_info, :hide_format?, :authorizations, :hide_documentation_path?, :mount_path, :api_version, to: :documentation_class
+      delegate :extra_info, :hide_format?, :authorizations, :hide_documentation_path?, :mount_path, :api_version, :target_class, to: :documentation_class
 
       def description
         namespaces = endpoint.combined_namespaces
@@ -21,6 +21,7 @@ module GrapeSwagger
           original_namespace_name = endpoint.combined_namespace_identifiers.key?(local_route) ? endpoint.combined_namespace_identifiers[local_route] : local_route
           description = namespaces[original_namespace_name] && namespaces[original_namespace_name].options[:desc]
           description ||= "Operations about #{original_namespace_name.pluralize}"
+          description = description.call if description.is_a?(Proc)
 
           {path: "/#{local_route}#{url_format}",
            description: description}
@@ -52,12 +53,13 @@ module GrapeSwagger
       end
 
       def parse_info(info)
+        translations = I18n.t(target_class.name.underscore.gsub('/', '.'), default: {}) || {}
         {contact:            info[:contact],
-         description:        as_markdown(info[:description]),
+         description:        as_markdown(translations[:description] || info[:description]),
          license:            info[:license],
          licenseUrl:         info[:license_url],
          termsOfServiceUrl:  info[:terms_of_service_url],
-         title:              info[:title]
+         title:              translations[:title] || info[:title]
         }.delete_if { |_, value| value.blank? }
       end
 
