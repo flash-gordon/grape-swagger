@@ -1,5 +1,5 @@
 module GrapeSwagger
-  class Documentation < Grape::API
+  module Documentation
     class RouteDoc < BaseDoc
       attr_reader :endpoint, :route, :route_options
 

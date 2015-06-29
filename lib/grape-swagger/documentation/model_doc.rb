@@ -1,5 +1,5 @@
 module GrapeSwagger
-  class Documentation < Grape::API
+  module Documentation
     class ModelDoc < BaseDoc
       # TODO: Add caching
       def self.fetch(model, documentation_class)

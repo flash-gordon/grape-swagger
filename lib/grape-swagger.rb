@@ -135,7 +135,7 @@ module Grape
       end
 
       def create_documentation_class
-        Class.new(GrapeSwagger::Documentation)
+        Class.new(Grape::API).tap { |c| c.extend(GrapeSwagger::Documentation) }
       end
     end
   end

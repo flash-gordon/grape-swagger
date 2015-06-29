@@ -1,7 +1,7 @@
 require 'set'
 
 module GrapeSwagger
-  class Documentation < Grape::API
+  module Documentation
     class BaseDoc
       PRIMITIVE_TYPES = %w(object integer long float double string byte boolean date dateTime).to_set
 

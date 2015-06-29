@@ -1,5 +1,5 @@
 module GrapeSwagger
-  class Documentation < Grape::API
+  module Documentation
     class APIDoc < BaseDoc
       delegate :extra_info, :hide_format?, :authorizations, :hide_documentation_path?, :mount_path, :api_version, :target_class, to: :documentation_class
 
