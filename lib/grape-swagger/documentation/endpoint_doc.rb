@@ -222,7 +222,7 @@ module GrapeSwagger
       attr_reader :routes_name
 
       delegate :api_version, :root_base_path, :authorizations, :base_path, to: :documentation_class
-      
+
       def initialize(documentation_class, routes_name)
         super(documentation_class)
         @routes_name = routes_name
@@ -355,9 +355,9 @@ module GrapeSwagger
         models.flatten.compact.flat_map do |model|
 
           # get model references from exposures with a documentation
-          nested_models = model.exposures.map do |_, config|
-            if config.key?(:documentation)
-              model = config[:using]
+          nested_models = model.root_exposures.map do |delegator|
+            if delegator.documentation
+              model = delegator.documentation[:using]
               model.respond_to?(:constantize) ? model.constantize : model
             end
           end.compact
